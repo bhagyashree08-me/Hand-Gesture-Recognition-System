@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hand Gesture Recognition</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f4f4f4;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        video {
+            border: 3px solid black;
+            border-radius: 10px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Hand Gesture Recognition</h1>
+
+    <!-- Camera -->
+    <video id="video" width="400" height="300" autoplay></video>
+    <br>
+
+    <!-- Capture Button -->
+    <button onclick="captureAndPredict()">Capture & Predict</button>
+
+    <!-- Hidden Canvas -->
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- Result -->
+    <div id="result">Prediction: </div>
+
+    
+    <script>
+        window.addEventListener("load", async () => {
+        const video = document.getElementById("video");
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+
+            console.log("Camera started successfully");
+        } catch (err) {
+            console.log("Camera error:", err.name, err.message);
+            alert("Camera not working: " + err.message);
+        }
+    });
+
+        async function captureAndPredict() {
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Capture frame
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = canvas.toDataURL("image/jpeg");
+
+            try {
+              const API_URL = "YOUR_NGROK_URL/predict";
+
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const data = await response.json();
+                if ('speechSynthesis' in window) {
+                    const textToSpeak = "The predicted digit is " + data.prediction;
+
+                    const speech = new SpeechSynthesisUtterance(textToSpeak);
+                    speech.lang = "en-US";
+                    speech.rate = 1;
+                    speech.pitch = 1;
+
+                    window.speechSynthesis.speak(speech);
+                }
+                // Clear result
+                const resultDiv = document.getElementById("result");
+                resultDiv.innerHTML = "";
+
+                // Show prediction text
+                const text = document.createElement("div");
+                text.innerText = "Prediction: " + data.prediction;
+                text.style.marginBottom = "10px";
+                resultDiv.appendChild(text);
+
+                // Show image
+                if (data.image) {
+                    const img = document.createElement("img");
+                    img.src = "data:image/jpeg;base64," + data.image;
+                    img.width = 300;
+                    resultDiv.appendChild(img);
+                } else {
+                    resultDiv.innerText = "No image received";
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById("result").innerText =
+                    "Error getting prediction";
+            }
+        }
+
+    </script>
+
+</body>
+</html>

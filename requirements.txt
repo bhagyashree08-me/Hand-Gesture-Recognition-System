@@ -1,0 +1,10 @@
+Flask
+flask-cors
+matplotlib
+mediapipe
+numpy
+opencv-python
+pyngrok
+scikit-learn
+seaborn
+tensorflow
