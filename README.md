@@ -1,4 +1,4 @@
-# ✋ Hand Gesture Recognition Syste
+# ✋ Hand Gesture Recognition System
 
 A Computer Vision-based Hand Gesture Recognition System that recognizes numerical hand gestures (0–5) using **MediaPipe** for hand detection and a **Convolutional Neural Network (CNN)** for gesture classification.
 
